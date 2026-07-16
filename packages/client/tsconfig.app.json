@@ -22,5 +22,10 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
+  /* Path mapping shadcn */
+    // "baseUrl": ".", ----> baseUrl is not needed here when using modern TypeScript with moduleResolution: "bundler"
+    "paths": {
+      "@/*": ["./src/*"]
+    },
   "include": ["src"]
 }
