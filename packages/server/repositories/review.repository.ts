@@ -13,10 +13,11 @@ const prisma = new PrismaClient({ adapter });
 
 export const reviewRepository = {
   // SELECT * FROM reviews WHERE productId = @productId ORDER BY createdAt DESC
-  async getReviews(productId: number): Promise<Review[]> {
+  async getReviews(productId: number, limit?: number): Promise<Review[]> {
     return await prisma.review.findMany({
       where: { productId },
       orderBy: { createdAt: "desc" },
+      take: limit,
     });
   },
 };
