@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import type { Review } from "../generated/prisma/client";
 import { PrismaClient } from "../generated/prisma/client";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
@@ -18,6 +19,23 @@ export const reviewRepository = {
       where: { productId },
       orderBy: { createdAt: "desc" },
       take: limit,
+    });
+  },
+
+  async storeReviewSummary(productId: number, summary: string) {
+    const now = new Date();
+    const expiresAt = dayjs().add(7, "day").toDate();
+    const data = {
+      productId,
+      content: summary,
+      expiresAt: expiresAt,
+      createdAt: now,
+    };
+
+    await prisma.summary.upsert({
+      where: { productId },
+      create: data,
+      update: data,
     });
   },
 };
