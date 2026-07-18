@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import StarRating from "./StarRating";
 
 type Props = {
   productId: number;
@@ -37,13 +38,14 @@ const ReviewList = ({ productId }: Props) => {
   }, []);
 
   return (
-    <div>
+    <div className={"flex flex-col gap-5"}>
       {reviewData?.reviews.map((review) => (
         <div key={review.id}>
-          <h3>{review.author}</h3>
-          <p>Rating: {review.rating}</p>
-          <p>{review.content}</p>
-          {/* <p>Created at: {review.createdAt}</p> */}
+          <div className={"font-bold"}>{review.author}</div>
+          <div>
+            <StarRating value={review.rating} />
+          </div>
+          <div className={"py-2"}>{review.content}</div>
         </div>
       ))}
     </div>
