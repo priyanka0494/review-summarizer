@@ -9,6 +9,12 @@ export const reviewService = {
   },
 
   async summarizeReviews(productId: number): Promise<string> {
+    //check if summary already exists in database
+    const existingSummary = await reviewRepository.getReviewSummary(productId);
+    if (existingSummary && existingSummary.expiresAt > new Date()) {
+      return existingSummary.content;
+    }
+
     //Get last 10 reviews
     const reviews = await reviewRepository.getReviews(productId, 10);
     const jointReviews = reviews.map((r) => r.content).join("\n\n");
