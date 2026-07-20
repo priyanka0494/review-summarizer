@@ -1,66 +1,33 @@
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { reviewApi } from "./ReviewsApi";
+import type { GetReviewsResponse, SummarizeResponse } from "./ReviewsApi";
 import ReviewSkeleton from "./ReviewSkeleton";
 import StarRating from "./StarRating";
 import { HiSparkles } from "react-icons/hi2";
 import { Button } from "../ui/button";
-import { useState } from "react";
 
 type Props = {
   productId: number;
 };
 
-type Review = {
-  id: number;
-  author: string;
-  content: string;
-  rating: number;
-  createdAt: string;
-};
-
-type GetReviewsResponse = {
-  summary: string | null;
-  reviews: Review[];
-};
-
-type SummarizeResponse = {
-  summary: string;
-};
-
 const ReviewList = ({ productId }: Props) => {
-  const [summary, setSummary] = useState("");
-  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
-  const [summaryError, setSummaryError] = useState("");
-
   const {
     data: reviewData,
     isLoading,
     error,
   } = useQuery<GetReviewsResponse>({
     queryKey: ["reviews", productId],
-    queryFn: async () => {
-      const { data } = await axios.get<GetReviewsResponse>(
-        `/api/products/${productId}/reviews`,
-      );
-      return data;
-    },
+    queryFn: () => reviewApi.fetchReviews(productId),
   });
 
-  const handleSummarize = async () => {
-    try {
-      setIsSummaryLoading(true);
-      setSummaryError("");
-      const { data } = await axios.post<SummarizeResponse>(
-        `/api/products/${productId}/reviews/summarize`,
-      );
-      setSummary(data.summary);
-    } catch (error) {
-      console.log(error);
-      setSummaryError("Could not summarize reviews. Try again!");
-    } finally {
-      setIsSummaryLoading(false);
-    }
-  };
+  const {
+    mutate: handleSummarize,
+    isPending: isSummaryLoading,
+    error: isSummaryError,
+    data: summarizeResponse,
+  } = useMutation<SummarizeResponse>({
+    mutationFn: () => reviewApi.summarizeReviews(productId),
+  });
 
   if (isLoading) {
     return (
@@ -84,7 +51,7 @@ const ReviewList = ({ productId }: Props) => {
     return null;
   }
 
-  const currentSummary = summary || reviewData?.summary;
+  const currentSummary = reviewData?.summary || summarizeResponse?.summary;
 
   return (
     <div>
@@ -94,7 +61,7 @@ const ReviewList = ({ productId }: Props) => {
         ) : (
           <>
             <Button
-              onClick={handleSummarize}
+              onClick={() => handleSummarize()}
               className={"cursor-pointer"}
               disabled={isSummaryLoading}
             >
@@ -106,7 +73,11 @@ const ReviewList = ({ productId }: Props) => {
                 <ReviewSkeleton />
               </div>
             )}
-            {summaryError && <p className="text-red-500">{summaryError}</p>}
+            {isSummaryError && (
+              <p className="text-red-500">
+                {"Could not summarize reviews. Try again!"}
+              </p>
+            )}
           </>
         )}
       </div>
